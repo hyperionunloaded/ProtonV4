@@ -21,7 +21,7 @@ local function repoSlug()
 			return slug
 		end
 	end
-	return "bitdancerfr/ProtonCompiled"
+	return "hyperionunloaded/ProtonCompiled"
 end
 
 local function branchRef()
@@ -104,7 +104,7 @@ for _, folder in {
 end
 
 if not isfile(ROOT .. "profiles/repo.txt") then
-	writefile(ROOT .. "profiles/repo.txt", "bitdancerfr/ProtonCompiled")
+	writefile(ROOT .. "profiles/repo.txt", "hyperionunloaded/ProtonCompiled")
 end
 
 if not shared.ProtonDeveloper then

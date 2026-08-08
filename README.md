@@ -5,7 +5,7 @@ Hosted loader bundle for Proton V4. The executor entry script downloads this rep
 ## Executor usage
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/bitdancerfr/ProtonCompiled/main/loader.lua", true), "proton")()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hyperionunloaded/ProtonCompiled/main/loader.lua", true), "proton")()
 ```
 
 Or with local dev:
@@ -26,7 +26,7 @@ proton/
   profiles/
     commit.txt        <- cache bust hash
     repo.txt          <- github slug
-  ui/vape_ui.lua
+  ui/proton_ui.lua
   src/proton/...
 ```
 

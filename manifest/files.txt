@@ -159,4 +159,4 @@ src/proton/plugins/world/block_in.lua
 src/proton/plugins/world/chest_steal.lua
 src/proton/plugins/world/fast_place.lua
 src/proton/ui/adapter.lua
-ui/vape_ui.lua
+ui/proton_ui.lua

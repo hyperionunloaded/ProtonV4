@@ -26,7 +26,7 @@ local function finishLoading(ctx)
 			end
 			teleported = true
 			local branch = isfile(ROOT .. "profiles/commit.txt") and readfile(ROOT .. "profiles/commit.txt"):gsub("%s+", "") or "main"
-			local slug = isfile(ROOT .. "profiles/repo.txt") and readfile(ROOT .. "profiles/repo.txt"):gsub("%s+", "") or "bitdancerfr/ProtonCompiled"
+			local slug = isfile(ROOT .. "profiles/repo.txt") and readfile(ROOT .. "profiles/repo.txt"):gsub("%s+", "") or "hyperionunloaded/ProtonCompiled"
 			local reload = [[
 shared.protonreload = true
 ]]
@@ -58,7 +58,7 @@ for line in manifestBody:gmatch("[^\r\n]+") do
 end
 boot.registerMany(files)
 
-boot.loadUI("ui/vape_ui.lua")
+boot.loadUI("ui/proton_ui.lua")
 
 local ctx = boot.run("src/proton/main.lua")
 shared.ProtonCtx = ctx
