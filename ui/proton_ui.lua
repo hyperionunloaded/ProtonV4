@@ -2,6 +2,7 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 
 local me = Players.LocalPlayer
@@ -36,7 +37,7 @@ local W, H = 960, 590
 local HEAD, TABS = 56, 42
 local RULE = HEAD + TABS
 
-local SIDE_X, SIDE_W = 18, 228
+local SIDE_X, SIDE_W = 24, 228
 local BODY_Y = RULE + 18
 local BODY_H = H - BODY_Y - 18
 
@@ -47,7 +48,7 @@ local CAT_H, CAT_SPACE = 40, 4
 local MOD_H, MOD_SPACE = 50, 6
 
 local DOCK_GAP = 8
-local PANEL_W = 290
+local PANEL_W = 330
 local PANEL_TOP = RULE
 local PANEL_H = H - RULE
 local NARROW_W = MAIN_W - PANEL_W - DOCK_GAP
@@ -108,6 +109,7 @@ screen.ResetOnSpawn = false
 screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screen.IgnoreGuiInset = true
 screen.DisplayOrder = 999
+screen.ClipsDescendants = false
 screen.Parent = (gethui and gethui()) or me:WaitForChild("PlayerGui")
 
 local OVL_W, OVL_H = 620, 78
@@ -237,6 +239,7 @@ win.Size = UDim2.fromOffset(W, H)
 win.Position = UDim2.fromScale(0.5, 0.5)
 win.BackgroundColor3 = hue.shell
 win.BorderSizePixel = 0
+win.ClipsDescendants = false
 win.ZIndex = 1
 win.Parent = screen
 edge(win, hue.rim)
@@ -248,38 +251,47 @@ local loadLayer = pane(win, UDim2.fromScale(1, 1), UDim2.new(), hue.dock)
 loadLayer.ZIndex = 90
 loadLayer.Visible = false
 
-local loadTitle = words(loadLayer, "PROTON V4", 20, hue.white, Enum.Font.GothamBold)
+local loadLogo = Instance.new("ImageLabel")
+loadLogo.Size = UDim2.fromOffset(48, 48)
+loadLogo.AnchorPoint = Vector2.new(0.5, 0)
+loadLogo.Position = UDim2.new(0.5, 0, 0, 148)
+loadLogo.BackgroundTransparency = 1
+loadLogo.Image = "rbxassetid://14368322199"
+loadLogo.ScaleType = Enum.ScaleType.Fit
+loadLogo.Parent = loadLayer
+
+local loadTitle = words(loadLayer, "PROTON", 20, hue.white, Enum.Font.GothamBold)
 loadTitle.AnchorPoint = Vector2.new(0.5, 0)
-loadTitle.Position = UDim2.new(0.5, 0, 0, 168)
+loadTitle.Position = UDim2.new(0.5, 0, 0, 200)
 loadTitle.Size = UDim2.fromOffset(240, 28)
 loadTitle.TextXAlignment = Enum.TextXAlignment.Center
 
 local loadSub = words(loadLayer, "Downloading assets", 13, hue.grey)
 loadSub.AnchorPoint = Vector2.new(0.5, 0)
-loadSub.Position = UDim2.new(0.5, 0, 0, 198)
+loadSub.Position = UDim2.new(0.5, 0, 0, 228)
 loadSub.Size = UDim2.fromOffset(240, 20)
 loadSub.TextXAlignment = Enum.TextXAlignment.Center
 
-local barTrack = pane(loadLayer, UDim2.fromOffset(440, 10), UDim2.new(0.5, -220, 0, 232), hue.offBar)
+local barTrack = pane(loadLayer, UDim2.fromOffset(440, 10), UDim2.new(0.5, -220, 0, 262), hue.offBar)
 round(barTrack, 5)
 local barFill = pane(barTrack, UDim2.fromScale(0, 1), UDim2.new(), hue.accent)
 round(barFill, 5)
 
 local loadPct = words(loadLayer, "0%", 12, hue.white, Enum.Font.GothamBold)
 loadPct.AnchorPoint = Vector2.new(0.5, 0)
-loadPct.Position = UDim2.new(0.5, 0, 0, 252)
+loadPct.Position = UDim2.new(0.5, 0, 0, 282)
 loadPct.Size = UDim2.fromOffset(80, 18)
 loadPct.TextXAlignment = Enum.TextXAlignment.Center
 
 local loadMeta = words(loadLayer, "0 / 0 · 0.0s", 12, hue.tip)
 loadMeta.AnchorPoint = Vector2.new(0.5, 0)
-loadMeta.Position = UDim2.new(0.5, 0, 0, 272)
+loadMeta.Position = UDim2.new(0.5, 0, 0, 302)
 loadMeta.Size = UDim2.fromOffset(440, 18)
 loadMeta.TextXAlignment = Enum.TextXAlignment.Center
 
 local loadFile = words(loadLayer, "", 11, hue.dust)
 loadFile.AnchorPoint = Vector2.new(0.5, 0)
-loadFile.Position = UDim2.new(0.5, 0, 0, 294)
+loadFile.Position = UDim2.new(0.5, 0, 0, 324)
 loadFile.Size = UDim2.fromOffset(440, 16)
 loadFile.TextXAlignment = Enum.TextXAlignment.Center
 
@@ -304,14 +316,20 @@ do
 end
 
 local mark = words(win, "PROTON", 22, hue.white, Enum.Font.GothamBold)
-mark.Position = UDim2.fromOffset(22, 0)
-mark.Size = UDim2.fromOffset(80, HEAD)
+mark.Position = UDim2.fromOffset(28, 0)
+mark.Size = UDim2.fromOffset(120, HEAD)
 
 local tag = pane(win, UDim2.fromOffset(58, 20), UDim2.fromOffset(88, 18), hue.chip)
 round(tag, 5)
-local tagTxt = words(tag, "Lobby", 11, Color3.fromRGB(172, 172, 180), Enum.Font.GothamBold)
+tag.Visible = false
+local tagTxt = words(tag, "", 11, Color3.fromRGB(172, 172, 180), Enum.Font.GothamBold)
 tagTxt.Size = UDim2.fromScale(1, 1)
 tagTxt.TextXAlignment = Enum.TextXAlignment.Center
+
+local STAR_ICON = "rbxassetid://6034509993"
+local SEARCH_ICON = "rbxassetid://14368354234"
+
+local featureHost = nil
 
 local overlayBtn = tap(win, UDim2.fromOffset(32, 32), UDim2.new(1, -94, 0, 12))
 local overlayIco = Instance.new("ImageLabel")
@@ -323,27 +341,15 @@ overlayIco.ScaleType = Enum.ScaleType.Fit
 overlayIco.Parent = overlayBtn
 
 local gearBtn = tap(win, UDim2.fromOffset(32, 32), UDim2.new(1, -54, 0, 12))
-local gearTxt = words(gearBtn, "\u{2699}\u{FE0E}", 20, hue.grey)
-gearTxt.Size = UDim2.fromScale(1, 1)
-gearTxt.TextXAlignment = Enum.TextXAlignment.Center
+local gearIco = Instance.new("ImageLabel")
+gearIco.Size = UDim2.fromScale(1, 1)
+gearIco.BackgroundTransparency = 1
+gearIco.Image = "rbxassetid://14368318994"
+gearIco.ImageColor3 = hue.grey
+gearIco.ScaleType = Enum.ScaleType.Fit
+gearIco.Parent = gearBtn
 
-local colBtn = tap(win, UDim2.fromOffset(32, 32), UDim2.new(1, -134, 0, 12))
-for k = 0, 1 do
-	local b = pane(colBtn, UDim2.fromOffset(2, 14), UDim2.fromOffset(12 + k * 7, 8), hue.grey)
-	round(b, 2)
-end
-
-local syncBtn = tap(win, UDim2.fromOffset(32, 32), UDim2.new(1, -174, 0, 12))
-local ring = pane(syncBtn, UDim2.fromOffset(16, 16), UDim2.fromOffset(8, 8), hue.grey)
-ring.BackgroundTransparency = 1
-round(ring, 9)
-edge(ring, hue.grey, 2)
-pane(ring, UDim2.fromOffset(8, 6), UDim2.fromOffset(11, -1), hue.shell)
-local barb = pane(ring, UDim2.fromOffset(6, 6), UDim2.fromOffset(12, 0), hue.grey)
-barb.Rotation = 45
-round(barb, 1)
-
-for _, set in ipairs({ { overlayBtn, nil, overlayIco }, { gearBtn, gearTxt }, { colBtn }, { syncBtn } }) do
+for _, set in ipairs({ { overlayBtn, nil, overlayIco }, { gearBtn, nil, gearIco } }) do
 	local btn = set[1]
 	local img = set[3]
 	local function tint(c)
@@ -387,18 +393,8 @@ for _, nm in ipairs({ "Modules", "Friends", "Profiles" }) do
 	tx = tx + w + 12
 end
 
-for nm, o in pairs(tabMap) do
-	o.b.MouseButton1Click:Connect(function()
-		tabPick = nm
-		for other, p in pairs(tabMap) do
-			p.b.TextColor3 = other == nm and hue.white or hue.dust
-			p.ul.Visible = other == nm
-		end
-	end)
-end
-
 local heading = words(win, "Modules", 18, hue.white, Enum.Font.GothamBold)
-heading.Position = UDim2.fromOffset(22, BODY_Y)
+heading.Position = UDim2.fromOffset(28, BODY_Y)
 heading.Size = UDim2.fromOffset(SIDE_W, 28)
 
 local catBox = Instance.new("ScrollingFrame")
@@ -418,16 +414,21 @@ catFlow.Padding = UDim.new(0, CAT_SPACE)
 catFlow.SortOrder = Enum.SortOrder.LayoutOrder
 catFlow.Parent = catBox
 
+local catPad = Instance.new("UIPadding")
+catPad.PaddingLeft = UDim.new(0, 10)
+catPad.PaddingRight = UDim.new(0, 10)
+catPad.Parent = catBox
+
 local shelves = {
-	{ id = "Favorites", sym = "\u{2605}\u{FE0E}", tint = hue.amber },
-	{ id = "Combat",    sym = "\u{2694}\u{FE0E}" },
-	{ id = "Blatant",   sym = "\u{26A1}" },
-	{ id = "Render",    sym = "\u{25C8}" },
-	{ id = "Utility",   sym = "\u{2692}\u{FE0E}" },
-	{ id = "World",     sym = "\u{25CE}" },
-	{ id = "Inventory", sym = "\u{25A4}" },
-	{ id = "Minigames", sym = "\u{265F}" },
-	{ id = "Legit",     sym = "\u{25D0}" },
+	{ id = "Favorites", icon = STAR_ICON, tint = hue.amber },
+	{ id = "Combat", icon = "rbxassetid://14368312652" },
+	{ id = "Blatant", icon = "rbxassetid://14368306745" },
+	{ id = "Render", icon = "rbxassetid://14368350193" },
+	{ id = "Utility", icon = "rbxassetid://14368359107" },
+	{ id = "World", icon = "rbxassetid://14368362492" },
+	{ id = "Inventory", icon = "rbxassetid://14928011633" },
+	{ id = "Minigames", icon = "rbxassetid://14368324807" },
+	{ id = "Legit", icon = "rbxassetid://14425650534" },
 }
 
 local stock = {}
@@ -575,26 +576,32 @@ local knobs = {
 
 local fallbackKnobs = {
 	{ t = "toggle", label = "Enabled", on = true },
-	{ t = "range",  label = "Range", lo = 1, hi = 5, min = 0, max = 10, step = 0.1 },
-	{ t = "drop",   label = "Mode", pick = "Normal", opts = { "Legit", "Normal", "Rage" } },
-	{ t = "toggle", label = "Visualize" },
 }
+
+local playerFriends = {}
+local useFriends = true
+local useAlias = true
+local profileNames = { "default" }
+local activeProfile = "default"
 
 local searchBar = pane(win, UDim2.fromOffset(MAIN_W, 40), UDim2.fromOffset(MAIN_X, BODY_Y), hue.slab)
 searchBar.ZIndex = 3
 round(searchBar, 7)
 edge(searchBar, hue.line)
 
-local lensRing = pane(searchBar, UDim2.fromOffset(12, 12), UDim2.fromOffset(15, 18), hue.slab)
-lensRing.BackgroundTransparency = 1
-round(lensRing, 6)
-edge(lensRing, hue.dust, 1.8)
-local lensStem = pane(searchBar, UDim2.fromOffset(6, 3), UDim2.fromOffset(25, 29), hue.dust)
-lensStem.Rotation = 45
+local searchIco = Instance.new("ImageLabel")
+searchIco.Size = UDim2.fromOffset(16, 16)
+searchIco.Position = UDim2.fromOffset(16, 12)
+searchIco.BackgroundTransparency = 1
+searchIco.Image = SEARCH_ICON
+searchIco.ImageColor3 = hue.dust
+searchIco.ScaleType = Enum.ScaleType.Fit
+searchIco.ZIndex = 4
+searchIco.Parent = searchBar
 
 local field = Instance.new("TextBox")
-field.Size = UDim2.new(1, -105, 1, 0)
-field.Position = UDim2.fromOffset(46, 0)
+field.Size = UDim2.new(1, -88, 1, 0)
+field.Position = UDim2.fromOffset(42, 0)
 field.BackgroundTransparency = 1
 field.Text = ""
 field.PlaceholderText = "Search modules..."
@@ -630,6 +637,71 @@ modFlow.Padding = UDim.new(0, MOD_SPACE)
 modFlow.SortOrder = Enum.SortOrder.LayoutOrder
 modFlow.Parent = modBox
 
+local friendsPanel = pane(win, UDim2.fromOffset(W - 46, BODY_H), UDim2.fromOffset(23, BODY_Y + 38), hue.shell)
+friendsPanel.Visible = false
+friendsPanel.ZIndex = 3
+
+local friendsHead = words(friendsPanel, "Friends", 18, hue.white, Enum.Font.GothamBold)
+friendsHead.Size = UDim2.fromOffset(200, 28)
+
+local friendsBox = Instance.new("ScrollingFrame")
+friendsBox.Size = UDim2.new(1, 0, 1, -80)
+friendsBox.Position = UDim2.fromOffset(0, 38)
+friendsBox.BackgroundTransparency = 1
+friendsBox.BorderSizePixel = 0
+friendsBox.ScrollBarThickness = 5
+friendsBox.CanvasSize = UDim2.new()
+friendsBox.AutomaticCanvasSize = Enum.AutomaticSize.Y
+friendsBox.Parent = friendsPanel
+
+local friendsFlow = Instance.new("UIListLayout")
+friendsFlow.Padding = UDim.new(0, 6)
+friendsFlow.SortOrder = Enum.SortOrder.LayoutOrder
+friendsFlow.Parent = friendsBox
+
+local profilesPanel = pane(win, UDim2.fromOffset(W - 46, BODY_H), UDim2.fromOffset(23, BODY_Y + 38), hue.shell)
+profilesPanel.Visible = false
+profilesPanel.ZIndex = 3
+
+local profilesHead = words(profilesPanel, "Profiles", 18, hue.white, Enum.Font.GothamBold)
+profilesHead.Size = UDim2.fromOffset(200, 28)
+
+local profileField = Instance.new("TextBox")
+profileField.Size = UDim2.new(1, -120, 0, 32)
+profileField.Position = UDim2.fromOffset(0, 38)
+profileField.BackgroundColor3 = hue.slab
+profileField.Text = ""
+profileField.PlaceholderText = "Profile name..."
+profileField.PlaceholderColor3 = hue.dust
+profileField.TextColor3 = hue.white
+profileField.TextSize = 14
+profileField.Font = Enum.Font.GothamMedium
+profileField.ClearTextOnFocus = false
+profileField.Parent = profilesPanel
+round(profileField, 6)
+
+local profileAdd = tap(profilesPanel, UDim2.fromOffset(100, 32), UDim2.new(1, -100, 0, 38))
+profileAdd.BackgroundColor3 = hue.accent
+round(profileAdd, 6)
+local profileAddTxt = words(profileAdd, "Add", 14, hue.onNub, Enum.Font.GothamBold)
+profileAddTxt.Size = UDim2.fromScale(1, 1)
+profileAddTxt.TextXAlignment = Enum.TextXAlignment.Center
+
+local profilesBox = Instance.new("ScrollingFrame")
+profilesBox.Size = UDim2.new(1, 0, 1, -84)
+profilesBox.Position = UDim2.fromOffset(0, 78)
+profilesBox.BackgroundTransparency = 1
+profilesBox.BorderSizePixel = 0
+profilesBox.ScrollBarThickness = 5
+profilesBox.CanvasSize = UDim2.new()
+profilesBox.AutomaticCanvasSize = Enum.AutomaticSize.Y
+profilesBox.Parent = profilesPanel
+
+local profilesFlow = Instance.new("UIListLayout")
+profilesFlow.Padding = UDim.new(0, 6)
+profilesFlow.SortOrder = Enum.SortOrder.LayoutOrder
+profilesFlow.Parent = profilesBox
+
 local panelLayer = Instance.new("Frame")
 panelLayer.Name = "panels"
 panelLayer.Size = UDim2.fromScale(1, 1)
@@ -644,10 +716,15 @@ dock.ZIndex = 50
 edge(dock, hue.line, 1)
 pane(dock, UDim2.fromOffset(1, PANEL_H), UDim2.new(), hue.line)
 
-local dockGear = words(dock, "\u{2699}\u{FE0E}", 14, hue.grey)
-dockGear.Position = UDim2.fromOffset(14, 19)
+local dockGear = Instance.new("ImageLabel")
 dockGear.Size = UDim2.fromOffset(16, 16)
+dockGear.Position = UDim2.fromOffset(14, 19)
+dockGear.BackgroundTransparency = 1
+dockGear.Image = "rbxassetid://14368318994"
+dockGear.ImageColor3 = hue.grey
+dockGear.ScaleType = Enum.ScaleType.Fit
 dockGear.ZIndex = 4
+dockGear.Parent = dock
 
 local dockName = words(dock, "", 18, hue.white, Enum.Font.GothamBold)
 dockName.Position = UDim2.fromOffset(40, 19)
@@ -656,12 +733,16 @@ dockName.ZIndex = 4
 
 local dockStar = tap(dock, UDim2.fromOffset(20, 20), UDim2.fromOffset(250, 17))
 dockStar.ZIndex = 4
-local dockStarTxt = words(dockStar, "\u{2605}\u{FE0E}", 16, hue.amber)
-dockStarTxt.Size = UDim2.fromScale(1, 1)
-dockStarTxt.TextXAlignment = Enum.TextXAlignment.Center
-dockStarTxt.ZIndex = 4
+local dockStarIco = Instance.new("ImageLabel")
+dockStarIco.Size = UDim2.fromScale(1, 1)
+dockStarIco.BackgroundTransparency = 1
+dockStarIco.Image = STAR_ICON
+dockStarIco.ImageColor3 = hue.dust
+dockStarIco.ScaleType = Enum.ScaleType.Fit
+dockStarIco.ZIndex = 4
+dockStarIco.Parent = dockStar
 
-local dockPill = tap(dock, UDim2.fromOffset(32, 16), UDim2.fromOffset(283, 19))
+local dockPill = tap(dock, UDim2.fromOffset(36, 16), UDim2.new(1, -64, 0, 19))
 dockPill.BackgroundTransparency = 0
 dockPill.BackgroundColor3 = hue.offBar
 dockPill.ZIndex = 4
@@ -693,9 +774,13 @@ dockFlow.SortOrder = Enum.SortOrder.LayoutOrder
 dockFlow.Parent = dockBox
 
 local dockPad = Instance.new("UIPadding")
-dockPad.PaddingRight = UDim.new(0, 10)
-dockPad.PaddingBottom = UDim.new(0, 12)
+dockPad.PaddingLeft = UDim.new(0, 19)
+dockPad.PaddingRight = UDim.new(0, 24)
+dockPad.PaddingTop = UDim.new(0, 4)
+dockPad.PaddingBottom = UDim.new(0, 16)
 dockPad.Parent = dockBox
+
+local dockStarIco
 
 local flags = {}
 local cards = {}
@@ -713,7 +798,57 @@ local fillList
 local rebuildModuleList
 local runSearch
 
+local function syncSetting(moduleId, key, value)
+	if not featureHost or not moduleId or not key then return end
+	local plugin = featureHost.plugins[moduleId]
+	if plugin then
+		plugin.state[key] = value
+	end
+end
+
+local settingLabels = {
+	value = "Speed",
+	vertical = "Vertical",
+	wallCheck = "Wall check",
+	autoJump = "Auto jump",
+	alwaysJump = "Always jump",
+	popBalloons = "Pop balloons",
+	tpDown = "TP down",
+	mode = "Mode",
+	range = "Range",
+	chance = "Chance",
+	players = "Players",
+	npcs = "NPCs",
+}
+
+local function labelFor(id)
+	return settingLabels[id] or (id:sub(1, 1):upper() .. id:sub(2))
+end
+
+local function buildKnobsFromPlugin(plugin)
+	local out = {}
+	for i, def in ipairs(plugin.settings or {}) do
+		local val = plugin.state and plugin.state[def.id]
+		if val == nil then val = def.default end
+		if def.kind == "toggle" then
+			out[i] = { t = "toggle", label = labelFor(def.id), on = val == true, key = def.id }
+		elseif def.kind == "range" then
+			local n = val or def.min or 0
+			out[i] = { t = "range", label = labelFor(def.id), lo = n, hi = n, min = def.min, max = def.max, step = def.step or 0.1, key = def.id }
+		elseif def.kind == "drop" then
+			out[i] = { t = "drop", label = labelFor(def.id), pick = val or def.default, opts = def.options, key = def.id }
+		end
+	end
+	return out
+end
+
 local function knobsFor(name)
+	if featureHost and featureHost.plugins[name] then
+		local plugin = featureHost.plugins[name]
+		if plugin.settings and #plugin.settings > 0 then
+			return buildKnobsFromPlugin(plugin)
+		end
+	end
 	if not knobState[name] then
 		local src = knobs[name] or fallbackKnobs
 		local out = {}
@@ -783,9 +918,9 @@ end
 local function paintStar(id)
 	local lit = favorites[id] == true
 	local col = lit and hue.amber or hue.dust
-	dockStarTxt.TextColor3 = col
+	if dockStarIco then dockStarIco.ImageColor3 = col end
 	local rs = rowStars[id]
-	if rs then rs.TextColor3 = col end
+	if rs then rs.ImageColor3 = col end
 end
 
 local function toggleModule(id)
@@ -847,7 +982,7 @@ local function knobToggle(slot, def, order)
 	lbl.Size = UDim2.fromOffset(240, 42)
 	lbl.ZIndex = 5
 
-	local sw = tap(row, UDim2.fromOffset(32, 18), UDim2.fromOffset(287, 12))
+	local sw = tap(row, UDim2.fromOffset(36, 18), UDim2.new(1, -64, 0, 12))
 	sw.BackgroundTransparency = 0
 	sw.BackgroundColor3 = slot.on and hue.white or hue.offBar
 	sw.ClipsDescendants = true
@@ -862,10 +997,11 @@ local function knobToggle(slot, def, order)
 		local ti = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		TweenService:Create(sw, ti, { BackgroundColor3 = slot.on and hue.white or hue.offBar }):Play()
 		TweenService:Create(nub, ti, {
-			Position = UDim2.fromOffset(slot.on and 16 or 2, 2),
+			Position = UDim2.fromOffset(slot.on and 20 or 2, 2),
 			BackgroundColor3 = slot.on and hue.onNub or hue.offNub,
 		}):Play()
 		lbl.TextColor3 = slot.on and hue.white or hue.grey
+		if slot.key and slot.module then syncSetting(slot.module, slot.key, slot.on) end
 	end)
 end
 
@@ -894,7 +1030,7 @@ local function knobRange(slot, def, order)
 	hiTxt.TextXAlignment = Enum.TextXAlignment.Right
 	hiTxt.ZIndex = 5
 
-	local TRACK_X, TRACK_W = 19, 297
+	local TRACK_X, TRACK_W = 19, 250
 	local rail = pane(row, UDim2.fromOffset(TRACK_W, 3), UDim2.fromOffset(TRACK_X, 51), hue.rail)
 	rail.ZIndex = 5
 	round(rail, 2)
@@ -943,7 +1079,12 @@ local function knobRange(slot, def, order)
 			if i.UserInputType == Enum.UserInputType.MouseButton1 then live = true end
 		end)
 		keep(UserInputService.InputEnded:Connect(function(i)
-			if i.UserInputType == Enum.UserInputType.MouseButton1 then live = false end
+			if i.UserInputType == Enum.UserInputType.MouseButton1 then
+				live = false
+				if slot.key and slot.module then
+					syncSetting(slot.module, slot.key, slot.lo)
+				end
+			end
 		end))
 		keep(UserInputService.InputChanged:Connect(function(i)
 			if not live or i.UserInputType ~= Enum.UserInputType.MouseMovement then return end
@@ -1031,6 +1172,7 @@ local function knobDrop(slot, def, order)
 				local lab = sib:FindFirstChildWhichIsA("TextLabel")
 				if lab then lab.TextColor3 = lab.Text == opt and hue.accent or hue.wellTxt end
 			end
+			if slot.key and slot.module then syncSetting(slot.module, slot.key, opt) end
 		end)
 	end
 
@@ -1077,6 +1219,7 @@ local function loadDock(name)
 	paintStar(name)
 
 	for i, slot in ipairs(knobsFor(name)) do
+		slot.module = name
 		if slot.t == "toggle" then
 			knobToggle(slot, slot, i)
 		elseif slot.t == "range" then
@@ -1145,6 +1288,104 @@ local function openDock(name)
 	setDim(name)
 end
 
+local function refreshFriends()
+	for _, ch in ipairs(friendsBox:GetChildren()) do
+		if not ch:IsA("UIListLayout") then ch:Destroy() end
+	end
+	local order = 2
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr == me then continue end
+		order += 1
+		local row = Instance.new("Frame")
+		row.Size = UDim2.new(1, -8, 0, 36)
+		row.BackgroundColor3 = hue.slab
+		row.BorderSizePixel = 0
+		row.LayoutOrder = order
+		row.Parent = friendsBox
+		round(row, 6)
+		local dot = pane(row, UDim2.fromOffset(14, 14), UDim2.fromOffset(14, 11), playerFriends[plr.UserId] and hue.amber or hue.accent)
+		round(dot, 7)
+		local nm = words(row, plr.DisplayName, 14, hue.white)
+		nm.Position = UDim2.fromOffset(44, 0)
+		nm.Size = UDim2.new(1, -54, 1, 0)
+		local hit = tap(row, UDim2.fromScale(1, 1), UDim2.new())
+		hit.MouseButton1Click:Connect(function()
+			if playerFriends[plr.UserId] then
+				playerFriends[plr.UserId] = nil
+				dot.BackgroundColor3 = hue.accent
+			else
+				playerFriends[plr.UserId] = plr.Name
+				dot.BackgroundColor3 = hue.amber
+			end
+		end)
+	end
+end
+
+local function refreshProfiles()
+	for _, ch in ipairs(profilesBox:GetChildren()) do
+		if not ch:IsA("UIListLayout") then ch:Destroy() end
+	end
+	for i, name in ipairs(profileNames) do
+		local row = tap(profilesBox, UDim2.new(1, -8, 0, 36), UDim2.new())
+		row.LayoutOrder = i
+		row.BackgroundTransparency = 0
+		row.BackgroundColor3 = name == activeProfile and hue.slabLit or hue.slab
+		round(row, 6)
+		local lbl = words(row, name, 14, name == activeProfile and hue.white or hue.grey)
+		lbl.Size = UDim2.new(1, -16, 1, 0)
+		lbl.Position = UDim2.fromOffset(14, 0)
+		row.MouseButton1Click:Connect(function()
+			activeProfile = name
+			refreshProfiles()
+		end)
+	end
+end
+
+profileAdd.MouseButton1Click:Connect(function()
+	local name = profileField.Text:match("^%s*(.-)%s*$") or ""
+	if name == "" or name:lower() == "default" then return end
+	for _, n in ipairs(profileNames) do
+		if n:lower() == name:lower() then return end
+	end
+	profileNames[#profileNames + 1] = name
+	profileField.Text = ""
+	refreshProfiles()
+end)
+
+local function setTab(nm)
+	tabPick = nm
+	for other, p in pairs(tabMap) do
+		p.b.TextColor3 = other == nm and hue.white or hue.dust
+		p.ul.Visible = other == nm
+	end
+	local isModules = nm == "Modules"
+	local isFriends = nm == "Friends"
+	local isProfiles = nm == "Profiles"
+	heading.Visible = isModules
+	catBox.Visible = isModules
+	searchBar.Visible = isModules
+	modBox.Visible = isModules
+	friendsPanel.Visible = isFriends
+	profilesPanel.Visible = isProfiles
+	heading.Text = isModules and "Modules" or nm
+	if isFriends then refreshFriends() end
+	if isProfiles then refreshProfiles() end
+	if not isModules then
+		dockOn = nil
+		panelMode = nil
+		dock.Visible = false
+		board.Visible = false
+		setPanelLayout(false)
+		setDim(nil)
+	end
+end
+
+for nm, o in pairs(tabMap) do
+	o.b.MouseButton1Click:Connect(function()
+		setTab(nm)
+	end)
+end
+
 local function drawCard(def, order)
 	local key = def.id
 	if flags[key] == nil then flags[key] = false end
@@ -1177,16 +1418,20 @@ local function drawCard(def, order)
 
 	local starBtn = tap(card, UDim2.fromOffset(20, 20), UDim2.new(1, -146, 0, 15))
 	starBtn.ZIndex = 4
-	local starTxt = words(starBtn, "\u{2605}\u{FE0E}", 14, favorites[key] and hue.amber or hue.dust)
-	starTxt.Size = UDim2.fromScale(1, 1)
-	starTxt.TextXAlignment = Enum.TextXAlignment.Center
-	starTxt.ZIndex = 4
-	rowStars[key] = starTxt
+	local starIco = Instance.new("ImageLabel")
+	starIco.Size = UDim2.fromScale(1, 1)
+	starIco.BackgroundTransparency = 1
+	starIco.Image = STAR_ICON
+	starIco.ImageColor3 = favorites[key] and hue.amber or hue.dust
+	starIco.ScaleType = Enum.ScaleType.Fit
+	starIco.ZIndex = 4
+	starIco.Parent = starBtn
+	rowStars[key] = starIco
 	starBtn.MouseEnter:Connect(function()
-		if not favorites[key] then starTxt.TextColor3 = hue.white end
+		if not favorites[key] then starIco.ImageColor3 = hue.white end
 	end)
 	starBtn.MouseLeave:Connect(function()
-		starTxt.TextColor3 = favorites[key] and hue.amber or hue.dust
+		starIco.ImageColor3 = favorites[key] and hue.amber or hue.dust
 	end)
 	starBtn.MouseButton1Click:Connect(function()
 		toggleFavorite(key)
@@ -1255,8 +1500,7 @@ local function drawCard(def, order)
 	end
 
 	local function flip()
-		apply(not flags[key])
-		refreshCatCounts()
+		toggleModule(key)
 	end
 
 	sw.MouseButton1Click:Connect(flip)
@@ -1342,13 +1586,18 @@ for i, def in ipairs(shelves) do
 	r.Parent = catBox
 	round(r, 9)
 
-	local ico = words(r, def.sym, 15, def.tint or (sel and hue.white or hue.grey))
-	ico.Position = UDim2.fromOffset(14, 0)
-	ico.Size = UDim2.fromOffset(24, CAT_H)
+	local ico = Instance.new("ImageLabel")
+	ico.Size = UDim2.fromOffset(16, 16)
+	ico.Position = UDim2.fromOffset(14, 12)
+	ico.BackgroundTransparency = 1
+	ico.Image = def.icon
+	ico.ImageColor3 = def.tint or (sel and hue.white or hue.grey)
+	ico.ScaleType = Enum.ScaleType.Fit
+	ico.Parent = r
 
 	local nm = words(r, def.id, 15, sel and hue.white or hue.grey)
 	nm.Position = UDim2.fromOffset(42, 0)
-	nm.Size = UDim2.fromOffset(120, CAT_H)
+	nm.Size = UDim2.fromOffset(130, CAT_H)
 
 	local tally = words(r, "0", 14, hue.dust)
 	tally.Position = UDim2.new(1, -55, 0, 0)
@@ -1369,7 +1618,7 @@ for i, def in ipairs(shelves) do
 			local hit = id == shelfPick
 			TweenService:Create(o.r, TweenInfo.new(0.12), { BackgroundTransparency = hit and 0 or 1 }):Play()
 			o.nm.TextColor3 = hit and hue.white or hue.grey
-			if not o.tint then o.ico.TextColor3 = hit and hue.white or hue.grey end
+			if not o.tint then o.ico.ImageColor3 = hit and hue.white or hue.grey end
 		end
 		field.Text = ""
 		fillList(shelfPick)
@@ -1393,10 +1642,25 @@ cfg = {
 	bindHint = true,
 	tips = true,
 	rainbow = 1,
+	rgb = false,
+	hue = 0.44,
+	sat = 1,
+	val = 1,
 	style = "Central",
 	count = true,
-	scale = "Large",
+	scale = "Normal",
 }
+
+local function applyTheme()
+	local h, s, v = cfg.hue or 0.44, cfg.sat or 1, cfg.val or 1
+	if cfg.rgb then
+		h = (tick() * (cfg.rainbow or 1) * 0.08) % 1
+	end
+	hue.accent = Color3.fromHSV(h, s, v)
+	barFill.BackgroundColor3 = hue.accent
+	loadLogo.ImageColor3 = Color3.fromHSV(h, s, v)
+	profileAdd.BackgroundColor3 = hue.accent
+end
 
 local scaleMap = { Tiny = 0.45, Small = 0.58, Normal = 0.65, Large = 0.78, Huge = 0.92 }
 winScale.Scale = scaleMap[cfg.scale]
@@ -1407,11 +1671,11 @@ blurFx.Enabled = false
 blurFx.Parent = Lighting
 
 local function applyStyle()
-	local half = win.AbsoluteSize.X / 2
+	local half = (W * winScale.Scale) / 2
 	if cfg.style == "Left" then
-		win.Position = UDim2.new(0, half + 30, 0.5, 0)
+		win.Position = UDim2.new(0, half + 36, 0.5, 0)
 	elseif cfg.style == "Right" then
-		win.Position = UDim2.new(1, -half - 30, 0.5, 0)
+		win.Position = UDim2.new(1, -half - 36, 0.5, 0)
 	else
 		win.Position = UDim2.fromScale(0.5, 0.5)
 	end
@@ -1436,9 +1700,13 @@ pane(board, UDim2.fromOffset(1, PANEL_H), UDim2.new(), hue.line)
 
 local badge = pane(board, UDim2.fromOffset(20, 20), UDim2.fromOffset(20, 16), hue.chip)
 round(badge, 10)
-local badgeIco = words(badge, "\u{2699}\u{FE0E}", 12, hue.grey)
+local badgeIco = Instance.new("ImageLabel")
 badgeIco.Size = UDim2.fromScale(1, 1)
-badgeIco.TextXAlignment = Enum.TextXAlignment.Center
+badgeIco.BackgroundTransparency = 1
+badgeIco.Image = "rbxassetid://14368318994"
+badgeIco.ImageColor3 = hue.grey
+badgeIco.ScaleType = Enum.ScaleType.Fit
+badgeIco.Parent = badge
 
 local boardTitle = words(board, "GUI", 15, hue.white, Enum.Font.GothamBold)
 boardTitle.Position = UDim2.fromOffset(50, 16)
@@ -1605,22 +1873,87 @@ cfgToggle(1, "Blur background", "Blur the background of the GUI",
 	function() return cfg.blur end,
 	function(v) cfg.blur = v; applyBlur() end)
 
-cfgToggle(2, "GUI bind indicator", "Show the keybind hint under the GUI",
+cfgToggle(2, "RGB mode", "Cycle GUI accent colors",
+	function() return cfg.rgb end,
+	function(v) cfg.rgb = v; applyTheme() end)
+
+cfgToggle(3, "GUI bind indicator", "Show the keybind hint under the GUI",
 	function() return cfg.bindHint end,
 	function(v) cfg.bindHint = v end)
 
-cfgToggle(3, "Show tooltips", "Show a short description when hovering options",
+cfgToggle(4, "Show tooltips", "Show a short description when hovering options",
 	function() return cfg.tips end,
 	function(v) cfg.tips = v; if not v then tipLine.Visible = false end end)
+
+cfgToggle(5, "Use friends", "Friend list protection in combat modules",
+	function() return useFriends end,
+	function(v) useFriends = v end)
+
+local themeWrap = Instance.new("Frame")
+themeWrap.Size = UDim2.new(1, 0, 0, 52)
+themeWrap.BackgroundTransparency = 1
+themeWrap.LayoutOrder = 6
+themeWrap.Parent = boardBox
+
+local themeLbl = words(themeWrap, "GUI theme", 14, hue.grey)
+themeLbl.Size = UDim2.new(1, -32, 0, 22)
+
+local themeRail = pane(themeWrap, UDim2.new(1, 0, 0, 4), UDim2.fromOffset(0, 34), hue.rail)
+round(themeRail, 2)
+
+local themeFill = pane(themeRail, UDim2.fromScale(cfg.hue, 1), UDim2.new(), hue.accent)
+round(themeFill, 2)
+
+local themeNub = pane(themeWrap, UDim2.fromOffset(16, 16), UDim2.new(cfg.hue, -8, 0, 28), hue.white)
+round(themeNub, 8)
+
+do
+	local live = false
+	local zone = tap(themeWrap, UDim2.new(1, 0, 0, 24), UDim2.fromOffset(0, 26))
+	zone.ZIndex = 2
+	local function setThemePct(pct)
+		pct = math.clamp(pct, 0, 1)
+		cfg.hue = pct
+		themeFill.Size = UDim2.fromScale(pct, 1)
+		themeNub.Position = UDim2.new(pct, -8, 0, 28)
+		applyTheme()
+	end
+	zone.InputBegan:Connect(function(i)
+		if i.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+		live = true
+		setThemePct((i.Position.X - themeRail.AbsolutePosition.X) / themeRail.AbsoluteSize.X)
+	end)
+	UserInputService.InputEnded:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 then live = false end
+	end)
+	UserInputService.InputChanged:Connect(function(i)
+		if not live or i.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+		setThemePct((i.Position.X - themeRail.AbsolutePosition.X) / themeRail.AbsoluteSize.X)
+	end)
+	setThemePct(cfg.hue)
+end
 
 local speedWrap = Instance.new("Frame")
 speedWrap.Size = UDim2.new(1, 0, 0, 52)
 speedWrap.BackgroundTransparency = 1
-speedWrap.LayoutOrder = 4
+speedWrap.LayoutOrder = 7
 speedWrap.Parent = boardBox
 
 local speedLbl = words(speedWrap, "Rainbow speed", 14, hue.grey)
 speedLbl.Size = UDim2.new(1, -32, 0, 22)
+
+local destructBtn = tap(boardBox, UDim2.new(1, -38, 0, 40), UDim2.new())
+destructBtn.LayoutOrder = 60
+destructBtn.BackgroundTransparency = 0
+destructBtn.BackgroundColor3 = Color3.fromRGB(190, 55, 55)
+round(destructBtn, 6)
+local destructTxt = words(destructBtn, "Self Destruct", 14, hue.white, Enum.Font.GothamBold)
+destructTxt.Size = UDim2.fromScale(1, 1)
+destructTxt.TextXAlignment = Enum.TextXAlignment.Center
+destructBtn.MouseButton1Click:Connect(function()
+	if protonApi.onSelfDestruct then protonApi.onSelfDestruct() end
+	screen:Destroy()
+end)
 
 local speedVal = words(speedWrap, "1", 14, hue.white)
 speedVal.Size = UDim2.fromOffset(32, 22)
@@ -1666,15 +1999,22 @@ do
 	set(0.1)
 end
 
-cfgDrop(5, "GUI style", { "Central", "Left", "Right" },
+local baseApplyTheme = applyTheme
+applyTheme = function()
+	baseApplyTheme()
+	if themeFill then themeFill.BackgroundColor3 = hue.accent end
+	if speedFill then speedFill.BackgroundColor3 = hue.accent end
+end
+
+cfgDrop(8, "GUI style", { "Central", "Left", "Right" },
 	function() return cfg.style end,
 	function(v) cfg.style = v; applyStyle() end)
 
-cfgToggle(6, "Show enabled count", "Show how many modules are on in each category",
+cfgToggle(9, "Show enabled count", "Show how many modules are on in each category",
 	function() return cfg.count end,
 	function(v) cfg.count = v; applyCount() end)
 
-cfgDrop(7, "GUI Scale", { "Tiny", "Small", "Normal", "Large", "Huge" },
+cfgDrop(10, "GUI Scale", { "Tiny", "Small", "Normal", "Large", "Huge" },
 	function() return cfg.scale end,
 	function(v)
 		cfg.scale = v
@@ -1685,6 +2025,9 @@ cfgDrop(7, "GUI Scale", { "Tiny", "Small", "Normal", "Large", "Huge" },
 gearBtn.MouseButton1Click:Connect(function()
 	openGuiPanel(panelMode ~= "gui")
 end)
+
+gearBtn.MouseEnter:Connect(function() gearIco.ImageColor3 = hue.white end)
+gearBtn.MouseLeave:Connect(function() gearIco.ImageColor3 = hue.grey end)
 
 overlayBtn.MouseButton1Click:Connect(function()
 	setOverlayOpen(not overlayPanel.Visible)
@@ -1711,7 +2054,12 @@ end)
 applyCount()
 applyBlur()
 applyStyle()
+applyTheme()
 refreshCatCounts()
+
+RunService.RenderStepped:Connect(function()
+	if cfg.rgb then applyTheme() end
+end)
 
 UserInputService.InputBegan:Connect(function(i, gameProcessed)
 	if i.UserInputType ~= Enum.UserInputType.Keyboard then return end
@@ -1764,12 +2112,18 @@ UserInputService.InputBegan:Connect(function(i, gameProcessed)
 	end
 end)
 
+function protonApi.bindHost(host)
+	featureHost = host
+	table.clear(knobState)
+end
+
+function protonApi.onSelfDestruct()
+end
+
 function protonApi.startDownload(total)
 	loadStart = tick()
 	loadTotal = total
 	loadLayer.Visible = true
-	tagTxt.Text = "Loading"
-	tagTxt.TextColor3 = Color3.fromRGB(170, 190, 220)
 	protonApi.updateDownload(0, total, "Starting...", loadStart)
 end
 
@@ -1806,16 +2160,18 @@ end
 
 function protonApi.setSession(label)
 	if not label then return end
-	tagTxt.Text = label
-	if label == "In Game" then
-		tagTxt.TextColor3 = Color3.fromRGB(120, 210, 140)
-	elseif label == "Post Game" then
-		tagTxt.TextColor3 = Color3.fromRGB(210, 170, 90)
-	elseif label == "Loading" then
-		tagTxt.TextColor3 = Color3.fromRGB(170, 190, 220)
-	else
-		tagTxt.TextColor3 = Color3.fromRGB(172, 172, 180)
+	tag.Visible = false
+end
+
+function protonApi.setWindowVisible(state)
+	win.Visible = state == true
+	if not state then
+		board.Visible = false
+		dock.Visible = false
+		panelMode = nil
+		setPanelLayout(false)
 	end
+	applyBlur()
 end
 
 function protonApi.setLobbyMode(state)
@@ -1854,6 +2210,10 @@ end
 function protonApi.setOverlay(id, state)
 	overlayState[id] = state == true
 	paintOverlayTile(id)
+end
+
+function protonApi.isOverlayEnabled(id)
+	return overlayState[id] == true
 end
 
 function protonApi.isEnabled(id)

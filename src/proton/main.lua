@@ -9,6 +9,8 @@ _G.ProtonManifest = manifest
 
 local app = bootstrap.new()
 app:init()
+app.ctx.boot = _G.ProtonBoot
+app.ctx.fileRoot = _G.ProtonFileRoot or ""
 app:loadGame("bedwars")
 
 local featureHost = hostMod.new(app.ctx)
@@ -27,12 +29,36 @@ if guiApi then
 	guiApi.onToggle = function(id, state)
 		if state then featureHost:enable(id) else featureHost:disable(id) end
 	end
+	guiApi.onSelfDestruct = function()
+		for id, plugin in pairs(featureHost.plugins) do
+			if plugin.enabled then featureHost:disable(id) end
+		end
+		if app.ctx.events then app.ctx.events.emit("proton:shutdown") end
+		shared.ProtonCtx = nil
+	end
 	app:attachUI(uiAdapter)
 end
 
 local loader = require(script.Parent.core.loader)
 loader.run(app.ctx, featureHost)
 featureHost:bindSession()
+
+if guiApi and guiApi.bindHost then
+	guiApi.bindHost(featureHost)
+end
+
+local overlayHost = require(script.Parent.core.overlays).new(app.ctx)
+app.ctx.overlays = overlayHost
+if uiAdapter then
+	for _, entry in ipairs(overlays) do
+		app.ctx.events.on("overlay:" .. entry.id, function(state)
+			overlayHost:set(entry.id, state)
+		end)
+		if guiApi.isOverlayEnabled and guiApi.isOverlayEnabled(entry.id) then
+			overlayHost:set(entry.id, true)
+		end
+	end
+end
 
 if guiApi and app.ctx.session then
 	local function syncSession()

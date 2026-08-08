@@ -50,26 +50,6 @@ end
 function host:enable(id)
 	local plugin = self.plugins[id]
 	if not plugin or plugin.enabled then return end
-	local session = self.ctx.session
-	local scope = plugin.scope or "match"
-	if session and not session.canRun(scope) then
-		if scope == "match" or scope == "game" then
-			plugin.pendingEnable = true
-			if not plugin._waitConn then
-				plugin._waitConn = self.ctx.events.on("session:changed", function()
-					if plugin.pendingEnable and session.canRun(scope) then
-						plugin.pendingEnable = nil
-						if plugin._waitConn then
-							plugin._waitConn()
-							plugin._waitConn = nil
-						end
-						self:enable(id)
-					end
-				end)
-			end
-		end
-		return
-	end
 	plugin.enabled = true
 	plugin.pendingEnable = nil
 	if plugin.enable then

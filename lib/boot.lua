@@ -3,6 +3,20 @@ local ROOT = "proton/"
 local nodes = {}
 local loaded = {}
 
+local function globalBase()
+	if getgenv then
+		local ok, g = pcall(getgenv)
+		if ok and type(g) == "table" and g.game then
+			return g
+		end
+	end
+	return _G
+end
+
+local G = globalBase()
+local capturedGame = G.game or game
+local capturedWorkspace = G.workspace or workspace
+
 local boot = {}
 
 function boot.setRoot(root)
@@ -123,6 +137,17 @@ local function register(relPath)
 	node.Parent = parent
 end
 
+local function moduleEnv(mod)
+	return setmetatable({
+		script = mod,
+		require = protonRequire,
+		game = capturedGame,
+		workspace = capturedWorkspace,
+		Workspace = capturedWorkspace,
+		Game = capturedGame,
+	}, { __index = G })
+end
+
 local function protonRequire(mod)
 	if type(mod) ~= "table" or not mod._file then
 		error("proton require: bad module", 2)
@@ -136,10 +161,7 @@ local function protonRequire(mod)
 		error("proton require: missing " .. mod._file, 2)
 	end
 	loaded[key] = true
-	local env = setmetatable({
-		script = mod,
-		require = protonRequire,
-	}, { __index = _G })
+	local env = moduleEnv(mod)
 	local fn, err
 	if load then
 		fn, err = load(src, mod._file, "t", env)

@@ -1,4 +1,3 @@
-lib/boot.lua
 loader.lua
 main.lua
 src/proton/core/bootstrap.lua
@@ -8,6 +7,7 @@ src/proton/core/events.lua
 src/proton/core/host.lua
 src/proton/core/loader.lua
 src/proton/core/notify.lua
+src/proton/core/overlays.lua
 src/proton/core/registry.lua
 src/proton/core/resolver.lua
 src/proton/core/scheduler.lua

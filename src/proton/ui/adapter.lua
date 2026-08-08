@@ -70,4 +70,10 @@ function adapter:getSetting(id, key)
 	end
 end
 
+function adapter:setVisible(state)
+	if self.api and self.api.setWindowVisible then
+		self.api.setWindowVisible(state)
+	end
+end
+
 return adapter

@@ -62,6 +62,9 @@ if not _G.ProtonUI then
 	boot.loadUI("ui/proton_ui.lua")
 end
 
+_G.ProtonBoot = boot
+_G.ProtonFileRoot = ROOT
+
 local ctx = boot.run("src/proton/main.lua")
 shared.ProtonCtx = ctx
 
