@@ -108,7 +108,6 @@ screen.ResetOnSpawn = false
 screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screen.IgnoreGuiInset = true
 screen.DisplayOrder = 999
-screen.ClipsDescendants = false
 screen.Parent = (gethui and gethui()) or me:WaitForChild("PlayerGui")
 
 local overlayDefs = {}
