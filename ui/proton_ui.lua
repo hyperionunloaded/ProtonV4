@@ -1,4 +1,3 @@
---proton-cache:build
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -112,125 +111,130 @@ screen.DisplayOrder = 999
 screen.ClipsDescendants = false
 screen.Parent = (gethui and gethui()) or me:WaitForChild("PlayerGui")
 
-local OVL_W, OVL_H = 620, 78
-local OVL_BTN, OVL_GAP = 36, 4
-local OVL_RED = Color3.fromRGB(235, 58, 58)
-local OVL_OFF = Color3.fromRGB(38, 38, 44)
 local overlayDefs = {}
 local overlayState = {}
 local overlayTiles = {}
-
-local overlayDim = tap(screen, UDim2.fromScale(1, 1), UDim2.new())
-overlayDim.BackgroundColor3 = Color3.new()
-overlayDim.BackgroundTransparency = 1
-overlayDim.Visible = false
-overlayDim.ZIndex = 200
-
-local overlayPanel = pane(screen, UDim2.fromOffset(OVL_W, OVL_H), UDim2.new(0.5, 0, 1, -24))
-overlayPanel.AnchorPoint = Vector2.new(0.5, 1)
-overlayPanel.BackgroundColor3 = Color3.fromRGB(18, 18, 21)
-overlayPanel.Visible = false
-overlayPanel.ZIndex = 201
-round(overlayPanel, 8)
-edge(overlayPanel, hue.rim)
-
-local ovlHead = pane(overlayPanel, UDim2.new(1, 0, 0, 22), UDim2.new(), Color3.fromRGB(18, 18, 21))
-ovlHead.BackgroundTransparency = 1
-ovlHead.ZIndex = 202
-
-local ovlTab = Instance.new("ImageLabel")
-ovlTab.Size = UDim2.fromOffset(12, 11)
-ovlTab.Position = UDim2.fromOffset(10, 6)
-ovlTab.BackgroundTransparency = 1
-ovlTab.Image = "rbxassetid://14397380433"
-ovlTab.ImageColor3 = hue.label
-ovlTab.ZIndex = 203
-ovlTab.Parent = ovlHead
-
-local ovlTitle = words(ovlHead, "Overlays", 12, hue.label, Enum.Font.GothamMedium)
-ovlTitle.Position = UDim2.fromOffset(28, 0)
-ovlTitle.Size = UDim2.fromOffset(120, 22)
-ovlTitle.ZIndex = 203
-
-local ovlBack = tap(ovlHead, UDim2.fromOffset(56, 22), UDim2.new(1, -10, 0, 0))
-ovlBack.ZIndex = 203
-local ovlBackIco = Instance.new("ImageLabel")
-ovlBackIco.Size = UDim2.fromOffset(10, 10)
-ovlBackIco.Position = UDim2.fromOffset(0, 6)
-ovlBackIco.BackgroundTransparency = 1
-ovlBackIco.Image = "rbxassetid://14368303894"
-ovlBackIco.ImageColor3 = hue.grey
-ovlBackIco.Parent = ovlBack
-local ovlBackTxt = words(ovlBack, "Back", 12, hue.grey)
-ovlBackTxt.Position = UDim2.fromOffset(14, 0)
-ovlBackTxt.Size = UDim2.fromOffset(40, 22)
-
-local ovlRow = pane(overlayPanel, UDim2.new(1, -16, 0, OVL_BTN), UDim2.fromOffset(8, 30), Color3.fromRGB(18, 18, 21))
-ovlRow.BackgroundTransparency = 1
-ovlRow.ZIndex = 202
-
-local ovlFlow = Instance.new("UIListLayout")
-ovlFlow.FillDirection = Enum.FillDirection.Horizontal
-ovlFlow.Padding = UDim.new(0, OVL_GAP)
-ovlFlow.SortOrder = Enum.SortOrder.LayoutOrder
-ovlFlow.Parent = ovlRow
-
-local function setOverlayOpen(open)
-	overlayDim.Visible = open
-	overlayPanel.Visible = open
-	overlayDim.BackgroundTransparency = open and 0.45 or 1
-end
-
-local function paintOverlayTile(id)
-	local tile = overlayTiles[id]
-	if not tile then return end
-	local on = overlayState[id] == true
-	tile.btn.BackgroundColor3 = on and OVL_RED or OVL_OFF
-	tile.ico.ImageColor3 = on and hue.white or hue.dust
-end
-
-local function toggleOverlay(id)
-	overlayState[id] = not overlayState[id]
-	paintOverlayTile(id)
-	if protonApi and protonApi.onOverlay then
-		protonApi.onOverlay(id, overlayState[id])
-	end
-end
-
-local function buildOverlayTiles(list)
-	for _, ch in ipairs(ovlRow:GetChildren()) do
-		if not ch:IsA("UIListLayout") then ch:Destroy() end
-	end
-	table.clear(overlayTiles)
-	overlayDefs = list or {}
-	for i, def in ipairs(overlayDefs) do
-		if overlayState[def.id] == nil then overlayState[def.id] = false end
-		local btn = tap(ovlRow, UDim2.fromOffset(OVL_BTN, OVL_BTN), UDim2.new())
-		btn.LayoutOrder = i
-		btn.BackgroundTransparency = 0
-		btn.ZIndex = 203
-		round(btn, 6)
-		local ico = Instance.new("ImageLabel")
-		ico.Size = UDim2.fromOffset(18, 18)
-		ico.AnchorPoint = Vector2.new(0.5, 0.5)
-		ico.Position = UDim2.fromScale(0.5, 0.5)
-		ico.BackgroundTransparency = 1
-		ico.Image = def.icon
-		ico.ScaleType = Enum.ScaleType.Fit
-		ico.ZIndex = 204
-		ico.Parent = btn
-		overlayTiles[def.id] = { btn = btn, ico = ico }
-		btn.MouseButton1Click:Connect(function()
-			toggleOverlay(def.id)
-		end)
-		paintOverlayTile(def.id)
-	end
-end
-
-overlayDim.MouseButton1Click:Connect(function() setOverlayOpen(false) end)
-ovlBack.MouseButton1Click:Connect(function() setOverlayOpen(false) end)
-
 local protonApi = {}
+
+local buildOverlayTiles, setOverlayOpen, paintOverlayTile, toggleOverlay, overlayPanelRef
+do
+	local OVL_W, OVL_H = 620, 78
+	local OVL_BTN, OVL_GAP = 36, 4
+	local OVL_RED = Color3.fromRGB(235, 58, 58)
+	local OVL_OFF = Color3.fromRGB(38, 38, 44)
+
+	local overlayDim = tap(screen, UDim2.fromScale(1, 1), UDim2.new())
+	overlayDim.BackgroundColor3 = Color3.new()
+	overlayDim.BackgroundTransparency = 1
+	overlayDim.Visible = false
+	overlayDim.ZIndex = 200
+
+	local overlayPanel = pane(screen, UDim2.fromOffset(OVL_W, OVL_H), UDim2.new(0.5, 0, 1, -24))
+	overlayPanel.AnchorPoint = Vector2.new(0.5, 1)
+	overlayPanel.BackgroundColor3 = Color3.fromRGB(18, 18, 21)
+	overlayPanel.Visible = false
+	overlayPanel.ZIndex = 201
+	round(overlayPanel, 8)
+	edge(overlayPanel, hue.rim)
+
+	local ovlHead = pane(overlayPanel, UDim2.new(1, 0, 0, 22), UDim2.new(), Color3.fromRGB(18, 18, 21))
+	ovlHead.BackgroundTransparency = 1
+	ovlHead.ZIndex = 202
+
+	local ovlTab = Instance.new("ImageLabel")
+	ovlTab.Size = UDim2.fromOffset(12, 11)
+	ovlTab.Position = UDim2.fromOffset(10, 6)
+	ovlTab.BackgroundTransparency = 1
+	ovlTab.Image = "rbxassetid://14397380433"
+	ovlTab.ImageColor3 = hue.label
+	ovlTab.ZIndex = 203
+	ovlTab.Parent = ovlHead
+
+	local ovlTitle = words(ovlHead, "Overlays", 12, hue.label, Enum.Font.GothamMedium)
+	ovlTitle.Position = UDim2.fromOffset(28, 0)
+	ovlTitle.Size = UDim2.fromOffset(120, 22)
+	ovlTitle.ZIndex = 203
+
+	local ovlBack = tap(ovlHead, UDim2.fromOffset(56, 22), UDim2.new(1, -10, 0, 0))
+	ovlBack.ZIndex = 203
+	local ovlBackIco = Instance.new("ImageLabel")
+	ovlBackIco.Size = UDim2.fromOffset(10, 10)
+	ovlBackIco.Position = UDim2.fromOffset(0, 6)
+	ovlBackIco.BackgroundTransparency = 1
+	ovlBackIco.Image = "rbxassetid://14368303894"
+	ovlBackIco.ImageColor3 = hue.grey
+	ovlBackIco.Parent = ovlBack
+	local ovlBackTxt = words(ovlBack, "Back", 12, hue.grey)
+	ovlBackTxt.Position = UDim2.fromOffset(14, 0)
+	ovlBackTxt.Size = UDim2.fromOffset(40, 22)
+
+	local ovlRow = pane(overlayPanel, UDim2.new(1, -16, 0, OVL_BTN), UDim2.fromOffset(8, 30), Color3.fromRGB(18, 18, 21))
+	ovlRow.BackgroundTransparency = 1
+	ovlRow.ZIndex = 202
+
+	local ovlFlow = Instance.new("UIListLayout")
+	ovlFlow.FillDirection = Enum.FillDirection.Horizontal
+	ovlFlow.Padding = UDim.new(0, OVL_GAP)
+	ovlFlow.SortOrder = Enum.SortOrder.LayoutOrder
+	ovlFlow.Parent = ovlRow
+
+	setOverlayOpen = function(open)
+		overlayDim.Visible = open
+		overlayPanel.Visible = open
+		overlayDim.BackgroundTransparency = open and 0.45 or 1
+	end
+
+	paintOverlayTile = function(id)
+		local tile = overlayTiles[id]
+		if not tile then return end
+		local on = overlayState[id] == true
+		tile.btn.BackgroundColor3 = on and OVL_RED or OVL_OFF
+		tile.ico.ImageColor3 = on and hue.white or hue.dust
+	end
+
+	toggleOverlay = function(id)
+		overlayState[id] = not overlayState[id]
+		paintOverlayTile(id)
+		if protonApi.onOverlay then
+			protonApi.onOverlay(id, overlayState[id])
+		end
+	end
+
+	buildOverlayTiles = function(list)
+		for _, ch in ipairs(ovlRow:GetChildren()) do
+			if not ch:IsA("UIListLayout") then ch:Destroy() end
+		end
+		table.clear(overlayTiles)
+		overlayDefs = list or {}
+		for i, def in ipairs(overlayDefs) do
+			if overlayState[def.id] == nil then overlayState[def.id] = false end
+			local btn = tap(ovlRow, UDim2.fromOffset(OVL_BTN, OVL_BTN), UDim2.new())
+			btn.LayoutOrder = i
+			btn.BackgroundTransparency = 0
+			btn.ZIndex = 203
+			round(btn, 6)
+			local ico = Instance.new("ImageLabel")
+			ico.Size = UDim2.fromOffset(18, 18)
+			ico.AnchorPoint = Vector2.new(0.5, 0.5)
+			ico.Position = UDim2.fromScale(0.5, 0.5)
+			ico.BackgroundTransparency = 1
+			ico.Image = def.icon
+			ico.ScaleType = Enum.ScaleType.Fit
+			ico.ZIndex = 204
+			ico.Parent = btn
+			overlayTiles[def.id] = { btn = btn, ico = ico }
+			btn.MouseButton1Click:Connect(function()
+				toggleOverlay(def.id)
+			end)
+			paintOverlayTile(def.id)
+		end
+	end
+
+	overlayDim.MouseButton1Click:Connect(function() setOverlayOpen(false) end)
+	ovlBack.MouseButton1Click:Connect(function() setOverlayOpen(false) end)
+
+	overlayPanelRef = overlayPanel
+end
 
 local win = Instance.new("Frame")
 win.Name = "win"
@@ -1691,7 +1695,8 @@ local function applyCount()
 	refreshCatCounts()
 end
 
-board = pane(panelLayer, UDim2.fromOffset(PANEL_W, PANEL_H), UDim2.fromOffset(W - PANEL_W, PANEL_TOP), hue.sheet)
+local function buildSettingsPanel()
+	board = pane(panelLayer, UDim2.fromOffset(PANEL_W, PANEL_H), UDim2.fromOffset(W - PANEL_W, PANEL_TOP), hue.sheet)
 board.Name = "cfg"
 board.Visible = false
 board.ZIndex = 50
@@ -2021,6 +2026,9 @@ cfgDrop(10, "GUI Scale", { "Tiny", "Small", "Normal", "Large", "Huge" },
 		winScale.Scale = scaleMap[v]
 		task.defer(applyStyle)
 	end)
+end
+
+buildSettingsPanel()
 
 gearBtn.MouseButton1Click:Connect(function()
 	openGuiPanel(panelMode ~= "gui")
@@ -2030,7 +2038,7 @@ gearBtn.MouseEnter:Connect(function() gearIco.ImageColor3 = hue.white end)
 gearBtn.MouseLeave:Connect(function() gearIco.ImageColor3 = hue.grey end)
 
 overlayBtn.MouseButton1Click:Connect(function()
-	setOverlayOpen(not overlayPanel.Visible)
+	setOverlayOpen(not overlayPanelRef.Visible)
 end)
 
 overlayBtn.MouseEnter:Connect(function() overlayIco.ImageColor3 = hue.white end)
