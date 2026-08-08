@@ -1,4 +1,6 @@
 --proton-cache:build
+repeat task.wait() until game:IsLoaded()
+
 local ROOT = "proton/"
 local MARKER = "--proton-cache:"
 
@@ -53,10 +55,90 @@ local function stamp(body)
 	return body
 end
 
+local splashGui
+
+local function makeSplash()
+	local Players = game:GetService("Players")
+	local pg = (gethui and gethui()) or Players.LocalPlayer:WaitForChild("PlayerGui")
+	splashGui = Instance.new("ScreenGui")
+	splashGui.Name = "proton_boot"
+	splashGui.ResetOnSpawn = false
+	splashGui.IgnoreGuiInset = true
+	splashGui.DisplayOrder = 998
+	splashGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	splashGui.Parent = pg
+	local shell = Color3.fromRGB(13, 13, 15)
+	local accent = Color3.fromRGB(45, 210, 150)
+	local grey = Color3.fromRGB(108, 108, 115)
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.fromOffset(960, 590)
+	frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	frame.Position = UDim2.fromScale(0.5, 0.5)
+	frame.BackgroundColor3 = shell
+	frame.BorderSizePixel = 0
+	frame.Parent = splashGui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = frame
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Size = UDim2.fromOffset(240, 28)
+	title.AnchorPoint = Vector2.new(0.5, 0)
+	title.Position = UDim2.new(0.5, 0, 0, 168)
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 20
+	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.Text = "PROTON V4"
+	title.Parent = frame
+	local sub = Instance.new("TextLabel")
+	sub.BackgroundTransparency = 1
+	sub.Size = UDim2.fromOffset(240, 20)
+	sub.AnchorPoint = Vector2.new(0.5, 0)
+	sub.Position = UDim2.new(0.5, 0, 0, 198)
+	sub.Font = Enum.Font.GothamMedium
+	sub.TextSize = 13
+	sub.TextColor3 = grey
+	sub.Text = "Fetching UI..."
+	sub.Parent = frame
+	local track = Instance.new("Frame")
+	track.Size = UDim2.fromOffset(440, 10)
+	track.AnchorPoint = Vector2.new(0.5, 0)
+	track.Position = UDim2.new(0.5, 0, 0, 232)
+	track.BackgroundColor3 = Color3.fromRGB(46, 46, 51)
+	track.BorderSizePixel = 0
+	track.Parent = frame
+	local tc = Instance.new("UICorner")
+	tc.CornerRadius = UDim.new(0, 5)
+	tc.Parent = track
+	local pulse = Instance.new("Frame")
+	pulse.Size = UDim2.fromScale(0.35, 1)
+	pulse.BackgroundColor3 = accent
+	pulse.BorderSizePixel = 0
+	pulse.Parent = track
+	local pc = Instance.new("UICorner")
+	pc.CornerRadius = UDim.new(0, 5)
+	pc.Parent = pulse
+	task.spawn(function()
+		while splashGui and splashGui.Parent and pulse.Parent do
+			pulse.Position = UDim2.fromScale(0, 0)
+			pulse:TweenPosition(UDim2.fromScale(0.65, 0), Enum.EasingDirection.InOut, Enum.EasingStyle.Sine, 0.9, true)
+			task.wait(0.9)
+		end
+	end)
+	return splashGui
+end
+
+local function killSplash()
+	if splashGui then
+		splashGui:Destroy()
+		splashGui = nil
+	end
+end
+
 local function downloadFile(workspacePath, remotePath)
 	remotePath = remotePath or workspacePath:gsub("^" .. ROOT, "")
 	if isfile(workspacePath) then
-		return readfile(workspacePath)
+		return readfile(workspacePath), false
 	end
 	local ok, res = pcall(function()
 		return game:HttpGet(rawUrl(remotePath), true)
@@ -66,7 +148,7 @@ local function downloadFile(workspacePath, remotePath)
 	end
 	ensureParent(workspacePath)
 	writefile(workspacePath, stamp(res))
-	return res
+	return res, true
 end
 
 local function wipeFolder(path)
@@ -130,18 +212,68 @@ if not shared.ProtonDeveloper then
 	writefile(ROOT .. "profiles/commit.txt", commit)
 end
 
-downloadFile(ROOT .. "manifest/files.txt", "manifest/files.txt")
-downloadFile(ROOT .. "lib/boot.lua", "lib/boot.lua")
+makeSplash()
 
-local manifest = readfile(ROOT .. "manifest/files.txt")
-for line in manifest:gmatch("[^\r\n]+") do
-	local rel = line:gsub("^%s+", ""):gsub("%s+$", "")
-	if rel ~= "" and rel:find("%.lua$") then
-		pcall(function()
-			downloadFile(ROOT .. rel, rel)
-		end)
+local uiApi
+local loadStart = tick()
+
+local function pushProgress(done, total, name)
+	if uiApi and uiApi.updateDownload then
+		uiApi.updateDownload(done, total, name, loadStart)
 	end
 end
 
-downloadFile(ROOT .. "main.lua", "main.lua")
+downloadFile(ROOT .. "manifest/files.txt", "manifest/files.txt")
+
+local manifestFiles = {}
+local manifestBody = readfile(ROOT .. "manifest/files.txt")
+for line in manifestBody:gmatch("[^\r\n]+") do
+	local rel = line:gsub("^%s+", ""):gsub("%s+$", "")
+	if rel ~= "" and rel:find("%.lua$") and rel ~= "loader.lua" then
+		manifestFiles[#manifestFiles + 1] = rel
+	end
+end
+
+table.sort(manifestFiles, function(a, b)
+	if a == "ui/proton_ui.lua" then return true end
+	if b == "ui/proton_ui.lua" then return false end
+	return a < b
+end)
+
+local total = #manifestFiles
+local done = 0
+local uiLoaded = false
+
+for _, rel in ipairs(manifestFiles) do
+	local path = ROOT .. rel
+	if not isfile(path) then
+		downloadFile(path, rel)
+	end
+	if rel == "ui/proton_ui.lua" and not uiLoaded then
+		local uiFn, uiErr = loadstring(readfile(path), path)
+		if not uiFn then
+			killSplash()
+			error(uiErr)
+		end
+		uiApi = uiFn()
+		_G.ProtonUI = uiApi
+		uiLoaded = true
+		killSplash()
+		if uiApi.startDownload then
+			uiApi.startDownload(total)
+		end
+	end
+	done += 1
+	pushProgress(done, total, rel)
+end
+
+if not uiLoaded then
+	killSplash()
+	error("proton ui missing from manifest")
+end
+
+if uiApi.finishDownload then
+	uiApi.finishDownload()
+end
+
 return loadstring(readfile(ROOT .. "main.lua"), "proton/main")()

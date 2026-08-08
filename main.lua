@@ -58,7 +58,9 @@ for line in manifestBody:gmatch("[^\r\n]+") do
 end
 boot.registerMany(files)
 
-boot.loadUI("ui/proton_ui.lua")
+if not _G.ProtonUI then
+	boot.loadUI("ui/proton_ui.lua")
+end
 
 local ctx = boot.run("src/proton/main.lua")
 shared.ProtonCtx = ctx

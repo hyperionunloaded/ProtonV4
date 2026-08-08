@@ -244,6 +244,48 @@ edge(win, hue.rim)
 local winScale = Instance.new("UIScale")
 winScale.Parent = win
 
+local loadLayer = pane(win, UDim2.fromScale(1, 1), UDim2.new(), hue.dock)
+loadLayer.ZIndex = 90
+loadLayer.Visible = false
+
+local loadTitle = words(loadLayer, "PROTON V4", 20, hue.white, Enum.Font.GothamBold)
+loadTitle.AnchorPoint = Vector2.new(0.5, 0)
+loadTitle.Position = UDim2.new(0.5, 0, 0, 168)
+loadTitle.Size = UDim2.fromOffset(240, 28)
+loadTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+local loadSub = words(loadLayer, "Downloading assets", 13, hue.grey)
+loadSub.AnchorPoint = Vector2.new(0.5, 0)
+loadSub.Position = UDim2.new(0.5, 0, 0, 198)
+loadSub.Size = UDim2.fromOffset(240, 20)
+loadSub.TextXAlignment = Enum.TextXAlignment.Center
+
+local barTrack = pane(loadLayer, UDim2.fromOffset(440, 10), UDim2.new(0.5, -220, 0, 232), hue.offBar)
+round(barTrack, 5)
+local barFill = pane(barTrack, UDim2.fromScale(0, 1), UDim2.new(), hue.accent)
+round(barFill, 5)
+
+local loadPct = words(loadLayer, "0%", 12, hue.white, Enum.Font.GothamBold)
+loadPct.AnchorPoint = Vector2.new(0.5, 0)
+loadPct.Position = UDim2.new(0.5, 0, 0, 252)
+loadPct.Size = UDim2.fromOffset(80, 18)
+loadPct.TextXAlignment = Enum.TextXAlignment.Center
+
+local loadMeta = words(loadLayer, "0 / 0 · 0.0s", 12, hue.tip)
+loadMeta.AnchorPoint = Vector2.new(0.5, 0)
+loadMeta.Position = UDim2.new(0.5, 0, 0, 272)
+loadMeta.Size = UDim2.fromOffset(440, 18)
+loadMeta.TextXAlignment = Enum.TextXAlignment.Center
+
+local loadFile = words(loadLayer, "", 11, hue.dust)
+loadFile.AnchorPoint = Vector2.new(0.5, 0)
+loadFile.Position = UDim2.new(0.5, 0, 0, 294)
+loadFile.Size = UDim2.fromOffset(440, 16)
+loadFile.TextXAlignment = Enum.TextXAlignment.Center
+
+local loadStart = 0
+local loadTotal = 0
+
 do
 	local held, grab, anchor
 	win.InputBegan:Connect(function(i)
@@ -1721,6 +1763,36 @@ UserInputService.InputBegan:Connect(function(i, gameProcessed)
 		end
 	end
 end)
+
+function protonApi.startDownload(total)
+	loadStart = tick()
+	loadTotal = total
+	loadLayer.Visible = true
+	tagTxt.Text = "Loading"
+	tagTxt.TextColor3 = Color3.fromRGB(170, 190, 220)
+	protonApi.updateDownload(0, total, "Starting...", loadStart)
+end
+
+function protonApi.updateDownload(done, total, name, started)
+	total = total or loadTotal
+	started = started or loadStart
+	local pct = total > 0 and math.max(0, math.min(1, done / total)) or 0
+	barFill.Size = UDim2.fromScale(pct, 1)
+	local elapsed = tick() - started
+	local short = name or ""
+	if #short > 52 then
+		short = "..." .. short:sub(-49)
+	end
+	loadFile.Text = short
+	loadMeta.Text = string.format("%d / %d · %.1fs", done, total, elapsed)
+	loadPct.Text = math.floor(pct * 100) .. "%"
+end
+
+function protonApi.finishDownload()
+	protonApi.updateDownload(loadTotal, loadTotal, "Ready", loadStart)
+	task.wait(0.12)
+	loadLayer.Visible = false
+end
 
 function protonApi.applyManifest(manifest)
 	if not manifest or not manifest.stock then return end
