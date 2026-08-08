@@ -1,3 +1,4 @@
+lib/boot.lua
 loader.lua
 main.lua
 src/proton/core/bootstrap.lua

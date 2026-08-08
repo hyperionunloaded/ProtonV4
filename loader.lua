@@ -232,6 +232,8 @@ local function pushProgress(done, total, name)
 end
 
 downloadFile(ROOT .. "manifest/files.txt", "manifest/files.txt")
+downloadFile(ROOT .. "lib/boot.lua", "lib/boot.lua")
+downloadFile(ROOT .. "main.lua", "main.lua")
 
 local manifestFiles = {}
 local manifestBody = readfile(ROOT .. "manifest/files.txt")

@@ -45,10 +45,17 @@ shared.protonreload = true
 	end)
 end
 
-local boot = loadstring(readfile(ROOT .. "lib/boot.lua"), "proton/boot")()
+local function readWorkspace(path)
+	if not isfile(path) then
+		error("proton missing file: " .. path, 2)
+	end
+	return readfile(path)
+end
+
+local boot = loadstring(readWorkspace(ROOT .. "lib/boot.lua"), "proton/boot")()
 boot.setRoot(ROOT)
 
-local manifestBody = readfile(ROOT .. "manifest/files.txt")
+local manifestBody = readWorkspace(ROOT .. "manifest/files.txt")
 local files = {}
 for line in manifestBody:gmatch("[^\r\n]+") do
 	local rel = line:gsub("^%s+", ""):gsub("%s+$", "")

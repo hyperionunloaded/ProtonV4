@@ -1,3 +1,4 @@
+--proton-cache:build
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
