@@ -1,11 +1,11 @@
-# ProtonCompiled
+# ProtonV4
 
 Hosted loader bundle for Proton V4. The executor entry script downloads this repo into the `proton/` workspace folder, same pattern as Vape's `newvape/` loader.
 
 ## Executor usage
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/hyperionunloaded/ProtonCompiled/main/loader.lua", true), "proton")()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hyperionunloaded/ProtonV4/main/loader.lua", true), "proton")()
 ```
 
 Or with local dev:

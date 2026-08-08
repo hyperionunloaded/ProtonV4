@@ -26,7 +26,7 @@ local function finishLoading(ctx)
 			end
 			teleported = true
 			local branch = isfile(ROOT .. "profiles/commit.txt") and readfile(ROOT .. "profiles/commit.txt"):gsub("%s+", "") or "main"
-			local slug = isfile(ROOT .. "profiles/repo.txt") and readfile(ROOT .. "profiles/repo.txt"):gsub("%s+", "") or "hyperionunloaded/ProtonCompiled"
+			local slug = isfile(ROOT .. "profiles/repo.txt") and readfile(ROOT .. "profiles/repo.txt"):gsub("%s+", "") or "hyperionunloaded/ProtonV4"
 			local reload = [[
 shared.protonreload = true
 ]]
